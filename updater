@@ -1,0 +1,232 @@
+#!/bin/bash
+
+#
+# ungoogled-chromium portable linux binaries updater
+# https://github.com/TheNocoder/ungoogled-updater
+# Copyright (c) 2023
+# https://github.com/TheNocoder/ungoogled-updater/LICENSE
+#
+
+# current directory of this script
+CURRENT_DIR=$(dirname $0)
+
+# ungoogled-chromium installation directory
+# updater can be included in the root directory of the ungoogled-chromium
+# installation or run in a separate directory.
+DIR_INSTALL=$CURRENT_DIR
+
+# force new version check
+FORCE_CHECK=false
+
+# check for new versions every EVERY_DAYS
+EVERY_DAYS=2
+
+# Temporary directory
+DIR_TMP="${CURRENT_DIR}/tmp"
+
+# There may be more than one download file type, default linux.tar.xz
+REPO_TYPE="linux.tar.xz"
+
+# Quiet update, without dialogs.
+QUIET=false
+
+usage()
+{
+    echo "Usage: $0 [-i /path/to/ungoogled-chromium] [-f <true|false>] [-e <number>] [-s <true|false>] [-t /path/to/tmp]" 1>&2;
+    exit 1;
+}
+
+while getopts i:f:e:h opt
+do
+    case "${opt}" in
+        i) DIR_INSTALL=${OPTARG};; # ungoogled-chromium installation directory (default current dir)
+        f) FORCE_CHECK=${OPTARG};; # force new version check if true (default false)
+        e) EVERY_DAYS=${OPTARG};;  # overwrite EVERY_DAYS (default EVERY_DAYS=2)
+        t) DIR_TMP=${OPTARG};;     # Temporary directory
+        s) QUIET=${OPTARG};;       # Quiet update
+        h | *) usage;;
+    esac
+done
+
+echo "------ $(date) "
+
+# Temporary directory for downloading updates
+# It needs to be deleted on every update, so for security a directory is created inside tmp.
+DIR_TMP_UPDATER="${DIR_TMP}/ungoogled-chromium-updater"
+
+# File with current version, if not exist, force check
+FILE_CURRENT_VER="${CURRENT_DIR}/updater-current-version"
+
+# File with the UNIXTIME of the next update, if not exist, force update
+FILE_LAST_CHECK="${CURRENT_DIR}/updater-last-check"
+
+# URL of the binaries repository
+REPO_URL="https://api.github.com/repos/clickot/ungoogled-chromium-binaries/releases/latest"
+
+# REPO_URL is a json, the json key containing the download link.
+REPO_KEY=".assets[].browser_download_url"
+
+# Download link, will be resolved later.
+REPO_LINK=""
+
+# Latest version in the repository, will be resolved later.
+REPO_VER=""
+
+# Current version installed
+CURRENT_VER=$(head -n 1 $FILE_CURRENT_VER)
+
+# unixtime
+NOW=$(date +%s)
+
+# Update period
+EVERY_SECONDS=$((60 * 60 * 24 * $EVERY_DAYS))
+
+# Last update unixtime
+LAST_CHECK=$(head -n 1 $FILE_LAST_CHECK)
+
+# Next update unixtime
+NEXT_CHECK=$(($LAST_CHECK + $EVERY_SECONDS))
+
+# KDE or GNOME dialog version to ask the user
+function newVersionDialog()
+{
+    if [[ $QUIET = true ]]; then
+        return 0
+    fi
+
+    notify-send "Ungoogled Chromium: New version (${REPO_VER})"
+    if which kdialog > /dev/null; then
+        return $(kdialog --title "Ungoogled Chromium Update" \
+                         --yesno "New version (${REPO_VER})\nUPDATE?" 0 0)
+    elif which zenity > /dev/null; then
+        return $(zenity --question \
+                        --width=250 \
+                        --title="Ungoogled Chromium Update" \
+                        --text="New version (${REPO_VER})\nUPDATE?")
+    else
+        # Requires kdialog or zenity for auto update
+        notify-send "Manual update o install kdialog/zenity"
+        return 1
+    fi
+}
+
+# KDE or GNOME dialog version to report the completed update
+function restartDialog()
+{
+    if [[ $QUIET = true ]]; then
+        return 0
+    fi
+
+    notify-send "Restart Ungoogled Chromium is required"
+    if which kdialog > /dev/null; then
+        return $(kdialog --title "Ungoogled Chromium Update" \
+                         --sorry "Restart Ungoogled Chromium is required")
+    elif which zenity > /dev/null; then
+        return $(zenity --info \
+                        --width=250 \
+                        --title="Ungoogled Chromium Update" \
+                        --text="Restart Ungoogled Chromium is required")
+    else
+        return 1
+    fi
+}
+
+
+# Check new version
+if [[ $NOW -gt $NEXT_CHECK || $FORCE_CHECK = true ]]; then
+    echo "Check new version"
+    REPO_LINK=$(curl ${REPO_URL} | jq -r ${REPO_KEY} | grep ${REPO_TYPE})
+    REPO_VER=$(awk -F "/" '{print $(NF-1)}' <<< "$REPO_LINK")
+    echo $NOW > $FILE_LAST_CHECK
+
+    # For debug
+    echo " - NOW: $NOW";
+    echo " - DIR_INSTALL: $DIR_INSTALL";
+    echo " - FORCE_CHECK: $FORCE_CHECK";
+    echo " - DIR_TMP: $DIR_TMP";
+    echo " - DIR_TMP_UPDATER: $DIR_TMP_UPDATER";
+    echo " - FILE_CURRENT_VER: $FILE_CURRENT_VER";
+    echo " - FILE_LAST_CHECK: $FILE_LAST_CHECK";
+    echo " - REPO_URL: $REPO_URL";
+    echo " - REPO_KEY: $REPO_KEY";
+    echo " - REPO_TYPE: $REPO_TYPE";
+    echo " - REPO_LINK: $REPO_LINK";
+    echo " - REPO_VER: $REPO_VER";
+    echo " - CURRENT_VER: $CURRENT_VER";
+    echo " - EVERY_DAYS: $EVERY_DAYS";
+    echo " - EVERY_SECONDS: $EVERY_SECONDS";
+    echo " - LAST_CHECK: $LAST_CHECK";
+    echo " - NEXT_CHECK $NEXT_CHECK";
+    # --------
+
+    # For some reason curl did not get the link to download
+    if [ -z "$REPO_LINK" ]; then
+        echo $LAST_CHECK > $FILE_LAST_CHECK
+        notify-send "ERROR Update Ungoogled Chromium, see updater.log"
+        echo "ERROR: Unable to obtain download link from: ${REPO_URL}"
+        exit 1
+    fi
+
+    # For some reason curl did not get the link to download
+    if [ -z "$REPO_VER" ]; then
+        echo $LAST_CHECK > $FILE_LAST_CHECK
+        notify-send "ERROR Update Ungoogled Chromium, see updater.log"
+        echo "ERROR: Unable to obtain new version number from: ${REPO_VER}"
+        exit 1
+    fi
+
+    # New version?
+    if [ "$CURRENT_VER" != "$REPO_VER" ]; then
+        echo "Has new version: ${REPO_VER}"
+
+        # Prompt the user to update
+        newVersionDialog
+        ans=$?
+
+        # Ask the user to update
+        if [ $ans -eq 0 ]; then
+            echo "User accepts the update: ${REPO_VER}"
+
+            # tmp is created if it does not exist
+            mkdir -p ${DIR_TMP}
+
+            # a possible previous update is deleted
+            rm -r ${DIR_TMP_UPDATER}
+
+            # tmp for downloading updates
+            mkdir -p ${DIR_TMP_UPDATER}
+
+            # for downloading updates this version
+            mkdir -p ${DIR_TMP_UPDATER}/${REPO_VER}
+
+            # download
+            curl -L -o ${DIR_TMP}/ungoogled-chromium-${REPO_VER}_tar.xz ${REPO_LINK}
+
+            # extract
+            tar -xf ${DIR_TMP}/ungoogled-chromium-${REPO_VER}_tar.xz -C ${DIR_TMP_UPDATER}/${REPO_VER}
+
+            # If the tar extraction directory is empty, the download has failed,
+            # otherwise is certain that the download has been completed successfully.
+            if [ -z "$(ls -A ${DIR_TMP_UPDATER}/${REPO_VER})" ]; then
+                echo $LAST_CHECK > $FILE_LAST_CHECK
+                notify-send "ERROR Update Ungoogled Chromium, see updater.log"
+                echo "ERROR: Unable to download the new version: ${REPO_LINK}"
+                exit 1
+            fi
+
+            # Overwrite the current version with the new one
+            NEW_VER_DIR=${DIR_TMP_UPDATER}/${REPO_VER}/$(ls -AU ${DIR_TMP_UPDATER}/${REPO_VER} | head -1)
+            cp -r $NEW_VER_DIR/* $DIR_INSTALL
+            echo $REPO_VER > $FILE_CURRENT_VER
+            echo "Updated to: ${REPO_VER}"
+
+            # End update, restart is required
+            restartDialog
+        else
+            echo "User reject the update"
+            echo $LAST_CHECK > $FILE_LAST_CHECK
+        fi
+    else
+        echo "No new version"
+    fi
+fi

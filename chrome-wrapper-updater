@@ -1,0 +1,16 @@
+#!/bin/bash
+
+#
+# ungoogled-chromium wrapper updater
+# https://github.com/TheNocoder/ungoogled-updater
+# Copyright (c) 2023
+# https://github.com/TheNocoder/ungoogled-updater/LICENSE
+#
+
+CURRENT_DIR=$(dirname $0)
+
+# check updates in background
+${CURRENT_DIR}/updater >> ${CURRENT_DIR}/updater.log &
+
+# exec ungoogled-chromium
+${CURRENT_DIR}/chrome-wrapper "$@"
