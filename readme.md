@@ -35,7 +35,7 @@ In this case you can update manually as follows:
 
     /opt/ungoogled-chromium-updater -i /opt/ungoogled-chromium
 
-You can create a CRON task with the above command, in this case you may want to add the -f option to force the new update check, default is 2 days, and -f does not show confirmation dialogs.
+You can create a CRON task with the above command, in this case you may want to add the -f option to force the new update check, default is 2 days, and -s does not show confirmation dialogs.
 
     /opt/ungoogled-chromium-updater -i /opt/ungoogled-chromium -f true -s true
 
