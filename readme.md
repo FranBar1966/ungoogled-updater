@@ -33,11 +33,11 @@ You can have your installation in one directory, e.g. /opt/ungoogled-chromium an
 
 In this case you can update manually as follows:
 
-    /opt/ungoogled-chromium-updater -i /opt/ungoogled-chromium
+    /opt/ungoogled-chromium-updater/updater -i /opt/ungoogled-chromium
 
 You can create a CRON task with the above command, in this case you may want to add the -f option to force the new update check, default is 2 days, and -s does not show confirmation dialogs.
 
-    /opt/ungoogled-chromium-updater -i /opt/ungoogled-chromium -f true -s true
+    /opt/ungoogled-chromium-updater/updater -i /opt/ungoogled-chromium -f true -s true
 
 If you want automatic updates when launching the browser, you will have to modify the "chrome-wrapper-updater" script as follows:
 
