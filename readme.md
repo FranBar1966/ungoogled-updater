@@ -70,7 +70,7 @@ updater [-i /path/to/ungoogled-chromium] [-f <true|false>] [-e <number>] [-s <tr
     -f  Force new version check if true (default false)
     -e  Check for updates every N days (default 2)
     -t  Temporary directory (default "${CURRENT_DIR}/tmp")
-    -s  Quiet update, does not show confirmation dialogs (default true)
+    -s  Quiet update, does not show confirmation dialogs (default false)
 
 ```
 
