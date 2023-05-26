@@ -36,7 +36,7 @@ usage()
     exit 1;
 }
 
-while getopts i:f:e:h opt
+while getopts i:f:e:t:s:h opt
 do
     case "${opt}" in
         i) DIR_INSTALL=${OPTARG};; # ungoogled-chromium installation directory (default current dir)
