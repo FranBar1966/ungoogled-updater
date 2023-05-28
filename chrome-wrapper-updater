@@ -10,7 +10,7 @@
 CURRENT_DIR=$(dirname $0)
 
 # check updates in background
-${CURRENT_DIR}/updater >> ${CURRENT_DIR}/updater.log &
+${CURRENT_DIR}/updater >> ${CURRENT_DIR}/updater.log 2>&1 &
 
 # exec ungoogled-chromium
 ${CURRENT_DIR}/chrome-wrapper "$@"
