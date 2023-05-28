@@ -216,7 +216,7 @@ if [[ $NOW -gt $NEXT_CHECK || $FORCE_CHECK = true ]]; then
 
             # Overwrite the current version with the new one
             NEW_VER_DIR=${DIR_TMP_UPDATER}/${REPO_VER}/$(ls -AU ${DIR_TMP_UPDATER}/${REPO_VER} | head -1)
-            cp -r $NEW_VER_DIR/* $DIR_INSTALL
+            cp -f -r $NEW_VER_DIR/* $DIR_INSTALL
             echo $REPO_VER > $FILE_CURRENT_VER
             echo "Updated to: ${REPO_VER}"
 
