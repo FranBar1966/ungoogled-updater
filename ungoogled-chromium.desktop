@@ -1,0 +1,25 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Version=1.0
+Name=Ungoogled Chromium
+GenericName=Web Browser
+Comment=Access the Internet
+# https://unix.stackexchange.com/questions/144422/getting-the-current-path-in-desktop-exec-command
+Exec=k=$(echo %k) && "$(dirname "$k")"/chrome-wrapper-updater %U
+StartupWMClass=ungoogled-chromium
+StartupNotify=true
+Terminal=false
+Icon=chromium
+Type=Application
+Categories=Network;WebBrowser;
+Keywords=chrome;internet;google;
+MimeType=application/pdf;application/rdf+xml;application/rss+xml;application/xhtml+xml;application/xhtml_xml;application/xml;image/gif;image/jpeg;image/png;image/webp;text/html;text/xml;x-scheme-handler/http;x-scheme-handler/https;
+Actions=new-window;new-private-window;
+
+[Desktop Action new-window]
+Name=New Window
+Exec=k=$(echo %k) && "$(dirname "$k")"/chrome-wrapper
+
+[Desktop Action new-private-window]
+Name=New Incognito Window (no updater)
+Exec=k=$(echo %k) && "$(dirname "$k")"/chrome-wrapper --incognito
