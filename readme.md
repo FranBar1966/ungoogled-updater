@@ -77,7 +77,7 @@ updater [-i /path/to/ungoogled-chromium] [-f <true|false>] [-e <number>] [-s <tr
 ## Requirements
 
  * curl
- * jd ( https://jqlang.github.io/jq/ )
+ * jq ( commandline JSON processor: https://jqlang.github.io/jq/ )
  * kdialog or zenity
 
 ## License
