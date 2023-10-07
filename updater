@@ -61,7 +61,7 @@ FILE_CURRENT_VER="${CURRENT_DIR}/updater-current-version"
 FILE_LAST_CHECK="${CURRENT_DIR}/updater-last-check"
 
 # URL of the binaries repository
-REPO_URL="https://api.github.com/repos/clickot/ungoogled-chromium-binaries/releases/latest"
+REPO_URL="https://api.github.com/repos/ungoogled-software/ungoogled-chromium-portablelinux/releases/latest"
 
 # REPO_URL is a json, the json key containing the download link.
 REPO_KEY=".assets[].browser_download_url"
