@@ -1,7 +1,7 @@
 ungoogled-chromium updater
 ==========================
 Updater for the Ungoogled Chromium binaries of the portable linux version:
-https://github.com/clickot/ungoogled-chromium-binaries
+https://github.com/ungoogled-software/ungoogled-chromium-portablelinux
 
 It is useful only for the binaries of the portable version of linux, the script can be included with the binaries or run in a separate directory.
 
